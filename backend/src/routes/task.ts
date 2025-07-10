@@ -82,12 +82,6 @@ taskRouter.put('/:taskId', authMiddleware, async (req, res)=>{
 taskRouter.delete('/:taskId', authMiddleware, async (req, res)=>{
     try{
         const taskId = req.params.taskId;
-        const success = taskSchema.safeParse(req.body)
-
-        if(!success.success){
-            res.status(403).json({})
-            return
-        }
         const task = await Task.deleteOne({
             _id: taskId
         })
