@@ -3,23 +3,13 @@ import { useState, useEffect } from "react";
 import { API_URL } from "@/config/global";
 import axios from "axios";
 
-// Dummy user and task data for demonstration (now with _id and username)
-const initialUsers = [
-	{ _id: "u1", username: "Alice" },
-	{ _id: "u2", username: "Bob" },
-	{ _id: "u3", username: "Charlie" },
-	{ _id: "u4", username: "David" },
-];
-const initialTasks = [
-	{ id: 1, title: "Design Homepage", assignedTo: ["u1", "u2"] },
-	{ id: 2, title: "API Integration", assignedTo: ["u3"] },
-];
-
 export default function Dashboard() {
-	const [tasks, setTasks] = useState(initialTasks);
-	const [users, setUsers] = useState(initialUsers);
+	const [tasks, setTasks] = useState([] as any[]);
+	const [users, setUsers] = useState([] as any[]);
 	const [showCreate, setShowCreate] = useState(false);
 	const [newTitle, setNewTitle] = useState("");
+	const [newDescription, setNewDescription] = useState("");
+	const [newStatus, setNewStatus] = useState("To Do");
 	const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 	const [filterUser, setFilterUser] = useState<string | null>(null);
 
@@ -27,8 +17,17 @@ export default function Dashboard() {
 	useEffect(() => {
 		const fetchUsers = async () => {
 			try {
-				const res = await axios.get(`${API_URL}/user/all`);
-				setUsers(res.data);
+				const res = await axios.get(`${API_URL}/user/all`, {
+					headers: {
+						Authorization: `${localStorage.getItem("token")}`
+					}
+				});
+				// Only keep _id and username for each user
+				const users = res.data.users.map((u: any) => ({
+					_id: u._id,
+					username: u.username
+				}));
+				setUsers(users);
 			} catch (err) {
 				console.error("Failed to fetch users", err);
 			}
@@ -40,8 +39,12 @@ export default function Dashboard() {
 	useEffect(() => {
 		const fetchTasks = async () => {
 			try {
-				const res = await axios.get(`${API_URL}/task/all`);
-				setTasks(res.data);
+				const res = await axios.get(`${API_URL}/task/all`, {
+                    headers: {
+                        Authorization: `${localStorage.getItem("token")}`
+                    }
+                });
+				setTasks(res.data.tasks);
 			} catch (err) {
 				console.error("Failed to fetch tasks", err);
 			}
@@ -51,14 +54,28 @@ export default function Dashboard() {
 
 	const handleCreateTask = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!newTitle.trim() || selectedUsers.length === 0) return;
+		if (!newTitle.trim() || !newDescription.trim() || selectedUsers.length === 0) return;
 		try {
-			const res = await axios.post(`${API_URL}/task/create`, {
+			const res = await axios.post(`${API_URL}/task`, {
 				title: newTitle,
-				assignedTo: selectedUsers,
+				description: newDescription,
+				status: newStatus,
+				userId: selectedUsers,
+			}, {
+                headers :{
+                    Authorization: `${localStorage.getItem("token")}`
+                }
+            });
+			// Fetch all tasks again after creating a new one
+			const tasksRes = await axios.get(`${API_URL}/task/all`, {
+				headers: {
+					Authorization: `${localStorage.getItem("token")}`
+				}
 			});
-			setTasks([...tasks, res.data]);
+			setTasks(tasksRes.data.tasks);
 			setNewTitle("");
+			setNewDescription("");
+			setNewStatus("To Do");
 			setSelectedUsers([]);
 			setShowCreate(false);
 		} catch (err) {
@@ -78,9 +95,11 @@ export default function Dashboard() {
 		setFilterUser((prev) => (prev === userId ? null : userId));
 	};
 
-	const filteredTasks = filterUser
-		? tasks.filter((task) => task.assignedTo.includes(filterUser))
-		: tasks;
+    // const filteredTasks = Array.isArray(tasks)
+    //     ? (filterUser
+    //         ? tasks.filter((task) => Array.isArray(task.assignedTo) && task.assignedTo.includes(filterUser))
+    //         : tasks)
+    //     : [];
 
 	return (
 		<div className="max-w-3xl mx-auto mt-16">
@@ -140,17 +159,24 @@ export default function Dashboard() {
 			<div>
 				<h2 className="text-xl font-semibold mb-2">Task List</h2>
 				<ul className="space-y-4">
-					{filteredTasks.map((task) => (
+					{(Array.isArray(tasks)
+						? (filterUser
+							? tasks.filter((task) => Array.isArray(task.userId) && task.userId.includes(filterUser))
+							: tasks)
+						: []
+					).map((task) => (
 						<li
-							key={task.id}
+							key={task._id}
 							className="p-4 bg-base-200 rounded shadow flex justify-between items-center"
 						>
 							<div>
 								<div className="font-medium">{task.title}</div>
+								<div className="text-sm">{task.description}</div>
 								<div className="text-sm mt-1">
+									Status: <span className="badge badge-secondary mr-2">{task.status || "To Do"}</span>
 									Assigned to:{" "}
-									{task.assignedTo.map((uid) => {
-										const user = users.find((u) => u._id === uid);
+									{Array.isArray(task.userId) && task.userId.map((uid: string) => {
+										const user = users.find((u: any) => u._id === uid);
 										return user ? (
 											<span
 												key={uid}
@@ -172,7 +198,7 @@ export default function Dashboard() {
 								<button
 									className="btn btn-sm btn-error"
 									onClick={() =>
-										setTasks(tasks.filter((t) => t.id !== task.id))
+										setTasks(tasks.filter((t) => t._id !== task._id))
 									}
 								>
 									Delete
@@ -197,6 +223,25 @@ export default function Dashboard() {
 								onChange={(e) => setNewTitle(e.target.value)}
 								required
 							/>
+							<textarea
+								className="textarea textarea-bordered w-full mb-4"
+								placeholder="Task Description"
+								value={newDescription}
+								onChange={(e) => setNewDescription(e.target.value)}
+								required
+							/>
+							<div className="mb-4">
+								<label className="font-medium mb-2 block">Status</label>
+								<select
+									className="select select-bordered w-full"
+									value={newStatus}
+									onChange={e => setNewStatus(e.target.value)}
+								>
+									<option value="To Do">To Do</option>
+									<option value="In Progress">In Progress</option>
+									<option value="Done">Done</option>
+								</select>
+							</div>
 							<div className="mb-4">
 								<div className="font-medium mb-2">Assign Users</div>
 								<div className="flex flex-wrap gap-2">
