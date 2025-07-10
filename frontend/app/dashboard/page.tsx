@@ -95,11 +95,25 @@ export default function Dashboard() {
 		setFilterUser((prev) => (prev === userId ? null : userId));
 	};
 
-    // const filteredTasks = Array.isArray(tasks)
-    //     ? (filterUser
-    //         ? tasks.filter((task) => Array.isArray(task.assignedTo) && task.assignedTo.includes(filterUser))
-    //         : tasks)
-    //     : [];
+	const handleDeleteTask = async (taskId: string) => {
+		if (!window.confirm("Are you sure you want to delete this task?")) return;
+		try {
+			await axios.delete(`${API_URL}/task/${taskId}`, {
+				headers: {
+					Authorization: `${localStorage.getItem("token")}`
+				}
+			});
+			// Fetch all tasks again after deletion
+			const tasksRes = await axios.get(`${API_URL}/task/all`, {
+				headers: {
+					Authorization: `${localStorage.getItem("token")}`
+				}
+			});
+			setTasks(tasksRes.data.tasks);
+		} catch (err) {
+			console.error("Failed to delete task", err);
+		}
+	};
 
 	return (
 		<div className="max-w-3xl mx-auto mt-16">
@@ -197,9 +211,7 @@ export default function Dashboard() {
 								</button>
 								<button
 									className="btn btn-sm btn-error"
-									onClick={() =>
-										setTasks(tasks.filter((t) => t._id !== task._id))
-									}
+									onClick={() => handleDeleteTask(task._id)}
 								>
 									Delete
 								</button>
