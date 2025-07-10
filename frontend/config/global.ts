@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8080"; // Replace with your actual API URL
+const API_URL = "http://16.170.162.164:8080"; // Replace with your actual API URL
 
 
 
