@@ -85,7 +85,10 @@ userRouter.post('/signin', async(req, res)=>{
 
 userRouter.get('/all', authMiddleware, async (req, res)=>{
     try{
-        const users = await User.
+        const users = await User.find();
+        res.json({
+            users
+        })
     }catch(error){
         res.json({
             error
