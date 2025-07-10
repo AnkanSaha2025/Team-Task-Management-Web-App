@@ -8,20 +8,32 @@ export const taskSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
   status: z.enum(["To Do", "In Progress", "Done"]),
-  userIds: z.array(z.string()).min(1)
+  userId: z.array(z.string()).min(1)
 });
 
-taskRouter.get('/', authMiddleware, async (req, res)=>{
-    const tasks = await Task.find
-})
+taskRouter.get('/:userId', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.params.userId;
 
-taskRouter.get('/:userId', authMiddleware, async (req, res)=>{
-    try{
-        const user
-    }catch(error){
-        res.json({error})
-    }
-})
+    const tasks = await Task.find({ userId: { $in: [userId] } });
+
+    res.json({ tasks });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+});
+
+taskRouter.get('/', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const tasks = await Task.find({ userId: { $in: [userId] } });
+
+    res.json({ tasks });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+});
 
 taskRouter.post('/', authMiddleware, async (req, res)=>{
     try{
@@ -59,7 +71,7 @@ taskRouter.put('/:taskId', authMiddleware, async (req, res)=>{
             title: success.data.title,
             description: success.data.description,
             status: success.data.status,
-            userId: success.data.userIds
+            userId: success.data.userId
         })
     }catch(error){
         res.json({error})
