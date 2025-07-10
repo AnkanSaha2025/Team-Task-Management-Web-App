@@ -51,6 +51,7 @@ exports.userRouter = express_1.default.Router();
 const db_1 = require("../db");
 const z = __importStar(require("zod"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const middleware_1 = require("../middleware");
 const userSchema = z.object({
     username: z.string(),
     password: z.string()
@@ -117,6 +118,19 @@ exports.userRouter.post('/signin', (req, res) => __awaiter(void 0, void 0, void 
     }
     catch (error) {
         res.status(403).json({
+            error
+        });
+    }
+}));
+exports.userRouter.get('/all', middleware_1.authMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const users = yield db_1.User.find();
+        res.json({
+            users
+        });
+    }
+    catch (error) {
+        res.json({
             error
         });
     }

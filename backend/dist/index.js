@@ -14,4 +14,4 @@ app.use((0, cors_1.default)({
 app.use(express_1.default.json());
 app.use('/user', user_1.userRouter);
 app.use('/task', task_1.taskRouter);
-app.listen(8080);
+app.listen(8080, () => []);

@@ -23,6 +23,17 @@ taskRouter.get('/:userId', authMiddleware, async (req, res) => {
   }
 });
 
+taskRouter.get('/all', authMiddleware, async (req, res) => {
+  try {
+    const tasks = await Task.find({});
+
+    res.json({ tasks });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+});
+
+
 taskRouter.get('/', authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
