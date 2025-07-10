@@ -40,5 +40,5 @@ const taskSchema = new mongoose_1.default.Schema({
         required: true
     }
 });
-exports.User = new mongoose_1.default.Model('User', userSchema);
-exports.Task = new mongoose_1.default.Model("Task", taskSchema);
+exports.User = mongoose_1.default.model('User', userSchema);
+exports.Task = mongoose_1.default.model("Task", taskSchema);

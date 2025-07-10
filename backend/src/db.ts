@@ -38,5 +38,5 @@ const taskSchema = new mongoose.Schema({
     }
 })
 
-export const User = new mongoose.Model('User', userSchema)
-export const Task = new mongoose.Model("Task", taskSchema)
+export const User = mongoose.model('User', userSchema)
+export const Task = mongoose.model("Task", taskSchema)
