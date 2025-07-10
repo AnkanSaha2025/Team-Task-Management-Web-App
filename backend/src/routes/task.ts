@@ -11,18 +11,6 @@ export const taskSchema = z.object({
   userId: z.array(z.string()).min(1)
 });
 
-taskRouter.get('/:userId', authMiddleware, async (req, res) => {
-  try {
-    const userId = req.params.userId;
-
-    const tasks = await Task.find({ userId: { $in: [userId] } });
-
-    res.json({ tasks });
-  } catch (error) {
-    res.status(500).json({ error });
-  }
-});
-
 taskRouter.get('/all', authMiddleware, async (req, res) => {
   try {
     const tasks = await Task.find({});
@@ -112,3 +100,15 @@ taskRouter.delete('/:taskId', authMiddleware, async (req, res)=>{
         res.json({error})
     }
 })
+
+taskRouter.get('/:userId', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const tasks = await Task.find({ userId: { $in: [userId] } });
+
+    res.json({ tasks });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+});
