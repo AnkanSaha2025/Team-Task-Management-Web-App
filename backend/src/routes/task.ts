@@ -13,8 +13,7 @@ export const taskSchema = z.object({
 
 taskRouter.get('/all', authMiddleware, async (req, res) => {
   try {
-    const tasks = await Task.find({});
-
+    const tasks = await Task.find({}).populate("userId");
     res.json({ tasks });
   } catch (error) {
     res.status(500).json({ error });
