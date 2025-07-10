@@ -3,6 +3,7 @@ export const userRouter = express.Router()
 import { User } from '../db'
 import * as z from "zod";
 import jwt from 'jsonwebtoken'
+import { authMiddleware } from '../middleware';
 
 const userSchema = z.object({
     username: z.string(),
@@ -77,6 +78,16 @@ userRouter.post('/signin', async(req, res)=>{
         
     }catch(error){
         res.status(403).json({
+            error
+        })
+    }
+})
+
+userRouter.get('/all', authMiddleware, async (req, res)=>{
+    try{
+        const users = await User.
+    }catch(error){
+        res.json({
             error
         })
     }
