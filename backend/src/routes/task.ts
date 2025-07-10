@@ -38,7 +38,6 @@ taskRouter.get('/', authMiddleware, async (req, res) => {
 taskRouter.post('/', authMiddleware, async (req, res)=>{
     try{
         const success = taskSchema.safeParse(req.body)
-
         if(!success.success){
             res.status(403).json({})
             return
@@ -73,11 +72,32 @@ taskRouter.put('/:taskId', authMiddleware, async (req, res)=>{
             status: success.data.status,
             userId: success.data.userId
         })
+
+        res.json({
+            task
+        })
     }catch(error){
         res.json({error})
     }
 })
 
-taskRouter.delete('/', authMiddleware, async (req, res)=>{
-    
+taskRouter.delete('/:taskId', authMiddleware, async (req, res)=>{
+    try{
+        const taskId = req.params.taskId;
+        const success = taskSchema.safeParse(req.body)
+
+        if(!success.success){
+            res.status(403).json({})
+            return
+        }
+        const task = await Task.deleteOne({
+            _id: taskId
+        })
+
+        res.json({
+            message: "Deleted"
+        })
+    }catch(error){
+        res.json({error})
+    }
 })
