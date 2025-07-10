@@ -2,7 +2,7 @@ import express from 'express'
 export const taskRouter = express.Router()
 import { authMiddleware } from '../middleware'
 
-taskRouter.get('/', (req, res)=>{
+taskRouter.get('/', authMiddleware, async (req, res)=>{
     
 })
 
